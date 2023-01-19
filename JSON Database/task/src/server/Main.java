@@ -1,10 +1,11 @@
 package server;
 
-import server.ui.TextUserInterface;
+import server.controller.ServerLogic;
 
+// TODO test coverage (when requirements seem stable)
 public class Main {
     public static void main(String[] args) {
-        TextUserInterface ui = new TextUserInterface();
-        ui.start();
+        ServerLogic serverLogic = new ServerLogic();
+        serverLogic.serve();
     }
 }
