@@ -1,48 +1,49 @@
 package common;
 
-import java.io.Serializable;
+import com.google.gson.Gson;
 
-public class Request implements Serializable {
-    final RequestType requestType;
-    int cellId;
-    String payload;
+public class Request {
+    final RequestType type;
+    String key;
+    String value;
 
-    public Request(RequestType requestType) {
-        this.requestType = requestType;
+    public Request(RequestType type) {
+        this.type = type;
     }
 
-    public Request(RequestType requestType, int cellId) {
-        this.requestType = requestType;
-        this.cellId = cellId;
+    public Request(RequestType type, String key) {
+        this.type = type;
+        this.key = key;
     }
 
-    public Request(RequestType requestType, int cellId, String payload) {
-        this.requestType = requestType;
-        this.cellId = cellId;
-        this.payload = payload;
+    public Request(RequestType type, String key, String value) {
+        this.type = type;
+        this.key = key;
+        this.value = value;
     }
 
-    public RequestType getRequestType() {
-        return requestType;
+    public RequestType getType() {
+        return type;
     }
 
-    public int getCellId() {
-        return cellId;
+    public String getKey() {
+        return key;
     }
 
-    public String getPayload() {
-        return payload == null ? "" : payload;
+    public String getValue() {
+        return value == null ? "" : value;
+    }
+
+    public String toJson() {
+        return new Gson().toJson(this);
     }
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(requestType.name().toLowerCase());
-        if (cellId != 0) // will only be 0 if uninitialized
-            sb.append(" ").append(cellId);
-        if (payload != null)
-            sb.append(" ").append(payload);
-
-        return sb.toString();
+        return "Request{" +
+                "type=" + type +
+                ", key='" + key + '\'' +
+                ", value='" + value + '\'' +
+                '}';
     }
 }

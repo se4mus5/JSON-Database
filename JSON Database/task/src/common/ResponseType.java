@@ -1,6 +1,6 @@
 package common;
 
-public enum ResponseStatus {
+public enum ResponseType {
     OK,
     ERROR
 }

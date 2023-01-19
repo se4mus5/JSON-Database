@@ -1,9 +1,10 @@
 package server.controller;
 
+import com.google.gson.Gson;
 import common.Request;
 import common.Response;
-import common.ResponseStatus;
-import server.model.MockDB;
+import common.ResponseType;
+import server.model.Database;
 
 import java.io.*;
 import java.net.InetAddress;
@@ -11,9 +12,9 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class ServerLogic {
-    private final MockDB mockDB;
+    private final Database db;
 
-    public ServerLogic() { mockDB = new MockDB(); }
+    public ServerLogic() { db = new Database(); }
 
     public void serve() {
         System.out.println("Server started!");
@@ -21,48 +22,58 @@ public class ServerLogic {
         String address = "127.0.0.1";
         int port = 23456;
         try (ServerSocket server = new ServerSocket(port, 50, InetAddress.getByName(address))) {
+            boolean terminating = false;
             while (true) {
                 Socket socket = server.accept();
-                ObjectInputStream input = new ObjectInputStream(socket.getInputStream());
-                ObjectOutputStream output = new ObjectOutputStream(socket.getOutputStream());
+                DataInputStream input = new DataInputStream(socket.getInputStream());
+                DataOutputStream output = new DataOutputStream(socket.getOutputStream());
 
-                Request request = (Request) input.readObject();
+                String requestJson = input.readUTF();
+                Request request = new Gson().fromJson(requestJson, Request.class);
+                //System.out.println("## DIAG ## " + request);
                 Response response;
-                System.out.println("Received: " + request);
+                System.out.println("Received: " + requestJson);
 
-                switch (request.getRequestType()) {
-                    case GET -> response = serveGet(request);
-                    case SET -> response = serveSet(request);
-                    case DELETE -> response = serveDelete(request);
-                    case EXIT -> { response = serveExit();
-                        input.close();
-                        output.close();
-                        System.exit(0); }
-                    default -> response = new Response(ResponseStatus.ERROR);
+                switch (request.getType()) {
+                    case get -> response = serveGet(request);
+                    case set -> response = serveSet(request);
+                    case delete -> response = serveDelete(request);
+                    case exit -> { response = serveExit(); terminating = true; }
+                    default -> response = new Response(ResponseType.ERROR);
                 }
 
-                output.writeObject(response);
-                System.out.println("Sent: " + response);
+                String responseJson = response.toJson();
+                output.writeUTF(responseJson);
+                System.out.println("Sent: " + responseJson);
+
+                if (terminating) { // this exit logic is needed for test suite compliance
+                    input.close();
+                    output.close();
+                    System.exit(0);
+                }
             }
-        } catch (IOException|ClassNotFoundException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     private Response serveDelete(Request request) {
-        return mockDB.delete(request.getCellId()) ? new Response(ResponseStatus.OK) : new Response(ResponseStatus.ERROR);
+        return db.delete(request.getKey()) ? new Response(ResponseType.OK)
+                : new Response(ResponseType.ERROR,  "No such key");
     }
 
     private Response serveSet(Request request) {
-        return mockDB.set(request.getCellId(), request.getPayload()) ? new Response(ResponseStatus.OK) : new Response(ResponseStatus.ERROR);
+        return db.set(request.getKey(), request.getValue())
+                ? new Response(ResponseType.OK) : new Response(ResponseType.ERROR);
     }
 
     private Response serveGet(Request request) {
-        String payload = mockDB.get(request.getCellId());
-        return !payload.equals("") ? new Response(payload) : new Response(ResponseStatus.ERROR);
+        String value = db.get(request.getKey());
+        return !value.equals("") ? new Response(ResponseType.OK, value, 1)
+                : new Response(ResponseType.ERROR,  "No such key");
     }
 
     private Response serveExit() {
-        return new Response(ResponseStatus.OK);
+        return new Response(ResponseType.OK);
     }
 }

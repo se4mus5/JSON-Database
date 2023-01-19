@@ -1,32 +1,36 @@
 package common;
 
-import java.io.Serializable;
+import com.google.gson.Gson;
 
-public class Response implements Serializable {
-    ResponseStatus responseStatus;
-    String payload;
+public class Response {
+    ResponseType response;
+    String value;
+    String reason;
 
-    public Response(ResponseStatus responseStatus, String payload) {
-        this.responseStatus = responseStatus;
-        this.payload = payload;
+    public Response(ResponseType response, String reason) {
+        this.response = response;
+        this.reason = reason;
     }
 
-    public Response(ResponseStatus responseStatus) {
-        this.responseStatus = responseStatus;
+    /**
+     * Constructor to set the value instance parameter upon creation. This is totally a hack: only needed in one use case
+     * of the app. Very likely a redesign candidate as future stage requirements evolve.
+     * @param response Response type enum
+     * @param value value returned to client
+     * @param valueIndicator assign any int to indicate that the String value parameter will be assigned to the value instance variable.
+     */
+    public Response(ResponseType response, String value, int valueIndicator) {
+        this.response = response;
+        this.value = value;
     }
 
-    public Response(String payload) { this.payload = payload; }
-
-    public ResponseStatus getResponseStatus() {
-        return responseStatus;
+    public Response(ResponseType response) {
+        this.response = response;
     }
 
-    public String getPayload() {
-        return payload == null ? "" : payload;
-    }
+    public Response(String value) { this.value = value; }
 
-    @Override
-    public String toString() {
-        return responseStatus == null ? payload : responseStatus.name();
+    public String toJson() {
+        return new Gson().toJson(this);
     }
 }

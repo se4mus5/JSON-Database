@@ -1,8 +1,10 @@
 package common;
 
+// irregular enum uses lowercase constants, which simplifies GSON serialization code significantly
+// while adapting to the changing String representation requirements
 public enum RequestType {
-    SET,
-    GET,
-    DELETE,
-    EXIT
+    set,
+    get,
+    delete,
+    exit
 }
