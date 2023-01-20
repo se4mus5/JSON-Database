@@ -10,16 +10,16 @@ public class Database {
         keyValuePairs = new HashMap<>(1000);
     }
 
-    public String get(String key) {
+    public synchronized String get(String key) {
         return keyValuePairs.getOrDefault(key, "");
     }
 
-    public boolean set(String key, String value) {
+    public synchronized boolean set(String key, String value) {
         keyValuePairs.put(key, value);
         return true;
     }
 
-    public boolean delete(String key) {
+    public synchronized boolean delete(String key) {
         if (keyValuePairs.getOrDefault(key, "").equals("")) return false;
         keyValuePairs.remove(key);
         return true;
