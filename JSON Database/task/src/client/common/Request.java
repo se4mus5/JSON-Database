@@ -1,4 +1,4 @@
-package common;
+package client.common;
 
 import com.google.gson.Gson;
 
@@ -22,28 +22,7 @@ public class Request {
         this.value = value;
     }
 
-    public RequestType getType() {
-        return type;
-    }
-
-    public String getKey() {
-        return key;
-    }
-
-    public String getValue() {
-        return value == null ? "" : value;
-    }
-
     public String toJson() {
         return new Gson().toJson(this);
-    }
-
-    @Override
-    public String toString() {
-        return "Request{" +
-                "type=" + type +
-                ", key='" + key + '\'' +
-                ", value='" + value + '\'' +
-                '}';
     }
 }

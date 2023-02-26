@@ -1,10 +1,11 @@
-package common;
+package server.common;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 
 public class Response {
     ResponseType response;
-    String value;
+    JsonElement value;
     String reason;
 
     public Response(ResponseType response, String reason) {
@@ -19,7 +20,7 @@ public class Response {
      * @param value value returned to client
      * @param valueIndicator assign any int to indicate that the String value parameter will be assigned to the value instance variable.
      */
-    public Response(ResponseType response, String value, int valueIndicator) {
+    public Response(ResponseType response, JsonElement value, int valueIndicator) {
         this.response = response;
         this.value = value;
     }
@@ -27,8 +28,6 @@ public class Response {
     public Response(ResponseType response) {
         this.response = response;
     }
-
-    public Response(String value) { this.value = value; }
 
     public String toJson() {
         return new Gson().toJson(this);

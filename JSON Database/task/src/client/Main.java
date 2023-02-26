@@ -2,17 +2,17 @@ package client;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import common.Request;
-import common.RequestType;
+import client.common.Request;
+import client.common.RequestType;
 
 import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
-import com.google.gson.Gson;
+import java.util.stream.Collectors;
 
 public class Main {
     @Parameter(names={"-t"})
-    static String command;
+    static String type;
     @Parameter(names={"-k"})
     static String key;
     @Parameter(names={"-v"})
@@ -22,7 +22,10 @@ public class Main {
 
     static private final String address = "127.0.0.1";
     static private final int port = 23456;
-    static private final String dataDir = "./src/client/data";
+    private static final String dataDir = System.getProperty("user.dir") + File.separator +
+            "src" + File.separator +
+            "client" + File.separator +
+            "data";
 
     public static void main(String[] args) {
         Main main = new Main();
@@ -38,25 +41,25 @@ public class Main {
             DataInputStream input = new DataInputStream(socket.getInputStream());
 
                 Request request;
+                String requestJson;
                 if (fileName == null || fileName.isEmpty()) {
-                    switch (command) {
+                    switch (type) {
                         case "get" -> request = new Request(RequestType.get, key);
                         case "delete" -> request = new Request(RequestType.delete, key);
-                        case "set" -> {
-                            request = new Request(RequestType.set, key, value);
-                        }
+                        case "set" -> request = new Request(RequestType.set, key, value);
                         // no need to explicitly terminate the client: CLI client exits after each command
-                        case "exit" ->  request = new Request(RequestType.exit);
-                        default -> { return; }
+                        case "exit" ->  request = new Request(RequestType.exit); // send request to server to shut down
+                        default -> { return; } // TODO add error handling
                     }
+                    requestJson = request.toJson();
                 } else {
-                    BufferedReader reader = new BufferedReader(new FileReader(dataDir + "/" + fileName));
-                    String requestJson = reader.readLine().trim();
-                    request = new Gson().fromJson(requestJson, Request.class);
+                    String fullyQualifiedDatafileName = dataDir + File.separator + fileName;
+                    BufferedReader reader = new BufferedReader(new FileReader(fullyQualifiedDatafileName));
+                    requestJson = reader.lines()
+                            .collect(Collectors.joining(System.lineSeparator()));
                     reader.close();
                 }
 
-                String requestJson = request.toJson();
                 output.writeUTF(requestJson);
                 System.out.println("Sent: " + requestJson);
 
